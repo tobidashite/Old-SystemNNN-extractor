@@ -1,48 +1,38 @@
-import glob,os
-from time import sleep
+import glob
+import os
 import shutil
 
 def extraction():
-    for x in glob.glob("spt_files/*.spt"):
-        print(x)
-        os.system("tool\gsspt.exe "+x+" "+x[:-3]+"txt")
-    
+    for spt_file in glob.glob("spt_files/*.spt"):
+        print(spt_file)
+        txt_file = spt_file.replace(".spt", ".txt")
+        os.system("wine tool/gsspt.exe "+spt_file+" "+txt_file)
+        
+        with open(txt_file, "r", encoding="utf-8") as fread:
+            buffer = fread.read()
 
-    for x in glob.glob("spt_files/*.txt"):
-        fread=open(x,"r",encoding="utf-8")
-        buffer=[]
-        buffer=fread.readlines()
+        with open("scripts_repaired/" + txt_file[10:], "w", encoding="utf-8") as fwrite:
+            fwrite.write(buffer)
 
-        for y in range(0,len(buffer)):
-            if buffer[y].__contains__("###"):
-                for char in range(0,len(buffer[y])):
-                    if buffer[y][char]=="#" and buffer[y][char+1]=="#" and buffer[y][char+2]=="#" and buffer[y][char-1]!="\n":
-                        buffer[y]=buffer[y][:char]+"\n"+buffer[y][char:]
-        fwrite=open("scripts_repaired"+x[9:],"w",encoding="utf-8")
-        for y in range(0,len(buffer)):
-            fwrite.write(buffer[y])
-    for x in glob.glob("spt_files/*.txt"):
-        fwrite.close()
-        fread.close()
-        os.remove(x)
+        os.remove(txt_file)
+
     menu()
 
 def insert():
-    file_name=[]
-    for x in glob.glob("scripts_repaired/*.txt"):
-        shutil.copy(x, "./patch")
-    for x in glob.glob("spt_files/*.spt"):
-        shutil.copy(x, "./patch")
+    file_name = []
+    for txt_file in glob.glob("scripts_repaired/*.txt"):
+        shutil.copy(txt_file, "./patch")
+    for spt_file in glob.glob("spt_files/*.spt"):
+        shutil.copy(spt_file, "./patch")
     
     for x in glob.glob("patch/*.*"):
-        
-        if x[len(x)-4:]==".txt":
+        if x.endswith(".txt"):
             file_name.append(x)
     
-    for x in range(0,len(file_name)):
-        os.system("tool\gsspt.exe "+file_name[x]+" "+file_name[x][:-3]+"spt")
-        os.remove(file_name[x])
-
+    for x in file_name:
+        spt_file = x.replace(".txt", ".spt")
+        os.system("wine tool/gsspt.exe "+x+" "+spt_file)
+        os.remove(x)
 
 def menu():
     print("1 Extract text in Text_parched")
@@ -54,12 +44,10 @@ def menu():
     if not os.path.exists('spt_files'):
         os.makedirs('spt_files')
 
-    option=int(input())
-    if option==1:
+    option = int(input())
+    if option == 1:
         extraction()
-    if option==2:
+    if option == 2:
         insert()
 
-
 menu()
-    
